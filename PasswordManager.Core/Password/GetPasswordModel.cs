@@ -10,3 +10,10 @@ public class GetPasswordModel
 
     public string Category { get; set; }
 }
+
+public class GetPasswordQuery
+{
+    public string? Name { get; set; }
+
+    public string? Category { get; set; }
+}

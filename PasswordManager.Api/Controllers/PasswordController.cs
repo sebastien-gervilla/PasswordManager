@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PasswordManager.Api.Data;
 using PasswordManager.Api.Models;
 using PasswordManager.Core.Password;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace PasswordManager.Api.Controllers;
 
@@ -32,13 +33,27 @@ public class PasswordController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetPasswords()
+    public IActionResult GetPasswords([FromQuery] GetPasswordQuery passwordQuery)
     {
         if (HttpContext.Items["UserId"] is not int userId)
             return Unauthorized();
 
         var passwords = _context.Passwords.Where(p => p.UserId == userId).ToList();
-        return Ok(passwords);
+
+        var filteredPasswords = new List<Password>();
+
+        foreach (var password in passwords)
+        {
+            if (!string.IsNullOrEmpty(passwordQuery.Name) && !password.Name.ToLower().Contains(passwordQuery.Name.ToLower()))
+                continue;
+
+            if (!string.IsNullOrEmpty(passwordQuery.Category) && !password.Category.ToLower().Contains(passwordQuery.Category.ToLower()))
+                continue;
+
+            filteredPasswords.Add(password);
+        }
+
+        return Ok(filteredPasswords);
     }
 
     [HttpPost]

@@ -8,6 +8,12 @@
 
 <PageTitle>Home</PageTitle>
 
+<div class="d-flex gap-2 mb-3">
+    <input type="text" class="form-control" placeholder="Search by name..." @bind="query.Name" />
+    <input type="text" class="form-control" placeholder="Search by category..." @bind="query.Category" />
+    <button class="btn btn-primary" @onclick="LoadPasswords">Apply Filters</button>
+</div>
+
 @if (passwords == null)
 {
     <p>Loading...</p>
@@ -50,12 +56,28 @@ else
 
 @code {
     private List<GetPasswordModel>? passwords = null;
+    private GetPasswordQuery query = new()
+    {
+        Name = null,
+        Category = null,
+    };
 
-    protected async override void OnInitialized()
+    protected override void OnInitialized()
+    {
+        LoadPasswords();
+    }
+
+    private async void LoadPasswords()
     {
         try
         {
-            var response = await RequestHelper.GetAsync("/api/passwords");
+            string requestUrl = "/api/passwords?";
+            if (query.Name != null)
+                requestUrl += $"name={query.Name}&";
+            if (query.Category != null)
+                requestUrl += $"category={query.Category}&";
+
+            var response = await RequestHelper.GetAsync(requestUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
